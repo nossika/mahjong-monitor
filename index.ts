@@ -18,7 +18,7 @@ while (true) {
   const huShape = getHuShape();
   logger.log('count', count);
   if (huShape) {
-    logger.log('hu!', shapeToTiles(huShape));
+    logger.log('hu!', shapeToTiles(huShape), huShape);
     break;
   }
 }

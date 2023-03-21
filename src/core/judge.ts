@@ -31,7 +31,7 @@ export const tileKeyToTile = (tileKey: string): Tile => {
   return {
     type,
     number,
-  };
+  } as Tile;
 }
 
 export const shapeToTiles = (shape: TilesShape): Tile[] => {
@@ -99,21 +99,50 @@ const isTripleShape = (shape: TilesShape): boolean => {
   return loopShape(shapeCopy);
 };
 
-const check13Yao = () => {
-  // @todo
-  return false;
+const is13Yao = (shape: TilesShape) => {
+  return [
+    '11',
+    '19',
+    '21',
+    '29',
+    '31',
+    '39',
+    '41',
+    '43',
+    '45',
+    '47',
+    '51',
+    '53',
+    '55',
+  ].every(key => shape[key] >= 1);
 }
 
-const check7Pairs = () => {
-  // @todo
-  return false;
+const is7Pairs = (shape: TilesShape) => {
+  return Object.values(shape).every(number => number === 2);
 }
+
+const matchHuShape = (shape: TilesShape) => {
+  switch (true) {
+    case is13Yao(shape):
+    case is7Pairs(shape):
+    case isTripleShape(shape):
+      return true;
+    default:
+      return false;
+  }
+};
 
 export const canHu = (shape: TilesShape): boolean => {
+  switch (true) {
+    case is13Yao(shape):
+    case is7Pairs(shape):
+      return true;
+    default:
+  }
+
   const jiangCombination = jiangCombinationGenerator(shape);
 
   for (const c of jiangCombination) {
-
     const ok = isTripleShape(c.shape);
     if (ok) {
       return true;

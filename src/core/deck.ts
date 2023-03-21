@@ -1,15 +1,17 @@
-import { Tile, TileFeng, TileFengNumber, TileJian, TileJianNumber, TileNormal, TileNumber, TileType } from './tile';
+import { Tile, TileFeng, TileFengNumber, TileJian, TileJianNumber, TileNormal, TileNormalType, TileNumber, TileType } from './tile';
 
 export const genDeck = () => {
   const deck: Tile[] = [];
 
   for (let repeat = 0; repeat < 4; repeat += 1) {
-    [
+    const normalTypes: TileNormalType[] = [
       TileType.Wan,
       TileType.Tong,
       TileType.Tiao,
-    ].map(type => {
-      const tiles: TileNormal[] = [
+    ];
+
+    normalTypes.forEach((type) => {
+      const normalTiles: TileNormal[] = [
         TileNumber.One,
         TileNumber.Two,
         TileNumber.Three,
@@ -24,7 +26,7 @@ export const genDeck = () => {
         number,
       }));
 
-      deck.push(...tiles);
+      deck.push(...normalTiles);
     });
 
     const fengTiles: TileFeng[] = [

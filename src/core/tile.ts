@@ -6,19 +6,21 @@ export enum TileType {
   Jian,
 }
 
+export type TileNormalType = TileType.Wan | TileType.Tong | TileType.Tiao;
+
 export interface TileNormal {
   number: TileNumber,
-  type: TileType,
+  type: TileNormalType,
 }
 
 export interface TileFeng {
   number: TileFengNumber,
-  type: TileType,
+  type: TileType.Feng,
 }
 
 export interface TileJian {
   number: TileJianNumber,
-  type: TileType,
+  type: TileType.Jian,
 }
 
 export enum TileNumber {
