@@ -1,6 +1,6 @@
 import { Tile, TileFeng, TileFengNumber, TileJian, TileJianNumber, TileNormal, TileNormalType, TileNumber, TileType } from './tile';
 
-export const genDeck = () => {
+const genDeck = () => {
   const deck: Tile[] = [];
 
   for (let repeat = 0; repeat < 4; repeat += 1) {
@@ -57,6 +57,17 @@ export const genDeck = () => {
 
   return shuffledDeck;
 };
+
+export class Deck {
+  tiles: Tile[] = [];
+  constructor() {
+    this.tiles = genDeck();
+  }
+
+  draw(count = 1) {
+    return this.tiles.splice(0, count);
+  }
+}
 
 
 export const shuffle = <T,>(arr: T[]): T[] => {

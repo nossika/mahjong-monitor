@@ -1,9 +1,10 @@
+
 export enum TileType {
-  Wan = 1,
-  Tong,
-  Tiao,
-  Feng,
-  Jian,
+  Wan = 1, // 万
+  Tong, // 筒
+  Tiao, // 条
+  Feng, // 风牌：东、南、西、北
+  Jian, // 箭牌：中、发、白
 }
 
 export type TileNormalType = TileType.Wan | TileType.Tong | TileType.Tiao;
@@ -53,11 +54,11 @@ export type Tile = TileNormal | TileFeng | TileJian;
 export const getTileName = (tile: Tile) => {
   switch (tile.type) {
     case TileType.Wan:
-      return `wan${tile.number}`;
+      return `${tile.number}万`;
     case TileType.Tong:
-      return `tong${tile.number}`;
+      return `${tile.number}筒`;
     case TileType.Tiao:
-      return `tiao${tile.number}`;
+      return `${tile.number}条`;
     case TileType.Feng:
       return getFengName(tile.number);
     case TileType.Jian:
@@ -68,13 +69,13 @@ export const getTileName = (tile: Tile) => {
 const getFengName = (number: number) => {
   switch (number) {
     case TileFengNumber.Dong:
-      return 'dong';
+      return '东';
     case TileFengNumber.Nan:
-      return 'nan';
+      return '南';
     case TileFengNumber.Xi:
-      return 'xi';
+      return '西';
     case TileFengNumber.Bei:
-      return 'bei';
+      return '北';
     default:
       throw new Error(`invalid feng number: ${number}`);
   }
@@ -83,11 +84,11 @@ const getFengName = (number: number) => {
 const getJianName = (number: number) => {
   switch (number) {
     case TileJianNumber.Zhong:
-      return 'zhong';
+      return '中';
     case TileJianNumber.Fa:
-      return 'fa';
+      return '发';
     case TileJianNumber.Bai:
-      return 'bai';
+      return '白';
       default:
         throw new Error(`invalid jian number: ${number}`);
   }

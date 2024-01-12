@@ -1,7 +1,7 @@
-import { canHu } from './judge';
+import { canHuShape } from './judge';
 
 test('can hu', () => {
-  expect(canHu({
+  expect(canHuShape({
     '12': 1,
     '13': 1,
     '14': 1,
@@ -16,8 +16,18 @@ test('can hu', () => {
   })).toBe(true);
 });
 
+test('hu with not full', () => {
+  expect(canHuShape({
+    '12': 3,
+    '13': 2,
+    '14': 3,
+    '15': 2,
+    '16': 1,
+  })).toBe(true);
+});
+
 test('can not hu', () => {
-  expect(canHu({
+  expect(canHuShape({
     '12': 1,
     '13': 1,
     '14': 1,
@@ -33,7 +43,7 @@ test('can not hu', () => {
 });
 
 test('hu with 13 yao', () => {
-  expect(canHu({
+  expect(canHuShape({
     '11': 1,
     '19': 1,
     '21': 1,
@@ -51,13 +61,12 @@ test('hu with 13 yao', () => {
 });
 
 test('hu with 7 pairs', () => {
-  expect(canHu({
+  expect(canHuShape({
     '12': 2,
     '14': 2,
     '17': 2,
     '19': 2,
     '23': 2,
-    '39': 2,
-    '47': 2,
+    '47': 4,
   })).toBe(true);
 });

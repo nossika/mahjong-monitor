@@ -1,24 +1,26 @@
-import { genDeck, tidy } from '@/core/deck';
-import { canHu, shapeToTiles, tilesToShape } from '@/core/judge';
+import { Deck, tidy } from '@/core/deck';
+import { canHu } from '@/core/judge';
+import { getTileName } from '@/core/tile';
 import logger from '@/util/logger';
 
-const getHuShape = () => {
-  const deck = genDeck();
-  const hand = tidy(deck.slice(0, 14));
-  const shape = tilesToShape(hand);
-  return canHu(shape) ? shape : null;
+const tryGenHuShape = () => {
+  const deck = new Deck();
+  const hand = deck.draw(14);
+  return canHu(hand) ? hand : null;
 }
-
-getHuShape();
 
 let count = 0;
 
 while (true) {
   count += 1;
-  const huShape = getHuShape();
-  logger.log('count', count);
-  if (huShape) {
-    logger.log('hu!', shapeToTiles(huShape), huShape);
+  const huHand = tryGenHuShape();
+  logger.log('try count', count);
+  if (huHand) {
+    logger.log(
+      'hu!',
+      '---',
+      tidy(huHand).map(tile => getTileName(tile)),
+    );
     break;
   }
 }

@@ -1,6 +1,11 @@
 import { Tile, TileNumber, TileType } from '@/core/tile';
 
-interface TilesShape {
+/**
+ * 牌型：由键值对组成，键是牌的种类，值是牌的张数
+ * 
+ * 牌型 key 是经过特殊设计的数字，保证连续的 key 在实际牌型中可以组成“顺子”，不连续的则不行，方便后续直接以数字判断
+ */
+export interface TilesShape {
   [tileKey: number]: number,
 }
 
@@ -8,7 +13,7 @@ export const tilesToShape = (tiles: Tile[]): TilesShape => {
   const shape: TilesShape = Object.create(null);
 
   tiles.forEach(t => {
-    const tileKey = `${t.type}${t.number}`;
+    const tileKey = tileToKey(t);
     if (!shape[tileKey]) {
       shape[tileKey] = 0;
     }
@@ -19,7 +24,11 @@ export const tilesToShape = (tiles: Tile[]): TilesShape => {
   return shape;
 }
 
-export const tileKeyToTile = (tileKey: string): Tile => {
+export const tileToKey = (tile: Tile) => {
+  return `${tile.type}${tile.number}`;
+}
+
+export const keyToTile = (tileKey: string): Tile => {
   const [typeStr, numberStr] = tileKey.split('');
 
   const type: TileType = +typeStr;
@@ -38,7 +47,7 @@ export const shapeToTiles = (shape: TilesShape): Tile[] => {
   const tiles: Tile[] = [];
 
   for (const [tileKey, count] of Object.entries(shape)) {
-    const tile = tileKeyToTile(tileKey);
+    const tile = keyToTile(tileKey);
     for (let i = 0; i < count; i += 1) {
       tiles.push(tile);
     }
@@ -48,11 +57,18 @@ export const shapeToTiles = (shape: TilesShape): Tile[] => {
 };
 
 
+/**
+ * 根据所有可能的“将牌”，组合出迭代器
+ * 
+ * “将牌”指 2 张一样的牌
+ */
 const jiangCombinationGenerator = function* (shape: TilesShape): Generator<{
   key: string,
   shape: TilesShape,
 }> {
   const tileKeys = Object.keys(shape);
+
+  // 将所有可能的“将牌”都加入迭代器
   for (const tileKey of tileKeys) {
     if (shape[tileKey] >= 2) {
       const jiangKey = tileKey;
@@ -68,23 +84,38 @@ const jiangCombinationGenerator = function* (shape: TilesShape): Generator<{
 }
 
 const deleteFromShape = (shape: TilesShape, key: string | number, count: number) => {
+  if (!shape[key]) {
+    throw new Error(`not enough ${key}`);
+  }
+  
   shape[key] -= count;
   if (shape[key] <= 0) {
     Reflect.deleteProperty(shape, key);
   }
 };
 
+/**
+ * 判断是否符合“面子”
+ * 
+ * “顺子”或“刻子”都称为“面子”
+ * “顺子”指 3 张同花色且点数连续的牌
+ * “刻子”指 3 张一样的牌
+ */
 const isTripleShape = (shape: TilesShape): boolean => {
   const loopShape = (shape: TilesShape) => {
 
     const tileKeys = Object.keys(shape);
     if (!tileKeys.length) return true;
     const minKey = +tileKeys[0];
+
+    /**
+     * 优先尝试组成“刻子”， 然后尝试组成“顺子”
+     * 因为 key 是排序过的，会先遍历到最小的 key
+     * 所以 一种 key “刻子”和“顺子”同时可满足的情况下，必须优先满足“刻子”，否则拿去组“顺子”的话，剩余的两张牌就无法匹配
+     */
     if (shape[minKey] >= 3) {
-      // try kezi
       deleteFromShape(shape, minKey, 3);
     } else {
-      // try shunzi
       for (const key of [minKey, minKey + 1, minKey + 2]) {
         if (!(shape[key] > 0)) return false;
         deleteFromShape(shape, key, 1);
@@ -99,6 +130,10 @@ const isTripleShape = (shape: TilesShape): boolean => {
   return loopShape(shapeCopy);
 };
 
+/**
+ * 十三幺
+ * 条件：存在这 13 张牌，每种花色的 1、9 各 1 张，全部风牌、箭牌各 1 张
+ */
 const is13Yao = (shape: TilesShape) => {
   return [
     '11',
@@ -117,22 +152,20 @@ const is13Yao = (shape: TilesShape) => {
   ].every(key => shape[key] >= 1);
 }
 
+/**
+ * 七小对
+ * 条件：全部由“对子”组成（一种牌有 4 张也成立，称为龙七对）
+ */
 const is7Pairs = (shape: TilesShape) => {
-  return Object.values(shape).every(number => number === 2);
+  return Object.values(shape).every(number => number === 2 || number === 4);
 }
 
-const matchHuShape = (shape: TilesShape) => {
-  switch (true) {
-    case is13Yao(shape):
-    case is7Pairs(shape):
-    case isTripleShape(shape):
-      return true;
-    default:
-      return false;
-  }
-};
-
-export const canHu = (shape: TilesShape): boolean => {
+/**
+ * 判断牌型（shape）是否可胡
+ * 1、尝试匹配特殊胡法：十三幺、七小对
+ * 2、尝试匹配正常胡法：一对“将牌”，且剩余牌可全部组成”面子“
+ */
+export const canHuShape = (shape: TilesShape): boolean => {
   switch (true) {
     case is13Yao(shape):
     case is7Pairs(shape):
@@ -140,8 +173,10 @@ export const canHu = (shape: TilesShape): boolean => {
     default:
   }
 
+  // 计算牌型中所有可能的“将牌”，组成迭代器
   const jiangCombination = jiangCombinationGenerator(shape);
 
+  // 对各种将牌下的牌型判断，剩余牌是否可全部组成“面子”
   for (const c of jiangCombination) {
     const ok = isTripleShape(c.shape);
     if (ok) {
@@ -150,4 +185,12 @@ export const canHu = (shape: TilesShape): boolean => {
   }
 
   return false;
+};
+
+/**
+ * 判断牌是否可胡
+ */
+export const canHu = (tiles: Tile[]): boolean => {
+  const shape = tilesToShape(tiles);
+  return canHuShape(shape);
 };
