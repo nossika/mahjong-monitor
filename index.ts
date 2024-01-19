@@ -1,26 +1,29 @@
-import { Deck, tidy } from '@/core/deck';
-import { canHu } from '@/core/judge';
-import { getTileName } from '@/core/tile';
-import logger from '@/util/logger';
+import * as inquirer from 'inquirer';
+import { autoGenerateHu } from './auto-gen-hu';
+import { startOnePlayerGame } from './one-player-game';
 
-const tryGenHuShape = () => {
-  const deck = new Deck();
-  const hand = deck.draw(14);
-  return canHu(hand) ? hand : null;
-}
 
-let count = 0;
+(async () => {
+  const { mode } = await inquirer.prompt([{
+    type: 'list',
+    message: 'select game mode',
+    name: 'mode',
+    choices: [
+      { name: 'one player game', value: 'one-player-game' },
+      { name: 'auto generate hu', value: 'auto-gen-hu' },
+    ], 
+  }]);
 
-while (true) {
-  count += 1;
-  const huHand = tryGenHuShape();
-  logger.log('try count', count);
-  if (huHand) {
-    logger.log(
-      'hu!',
-      '---',
-      tidy(huHand).map(tile => getTileName(tile)),
-    );
-    break;
+  switch (mode) {
+    case 'one-player-game': {
+      await startOnePlayerGame();
+      break;
+    }
+    case 'auto-gen-hu': {
+      await autoGenerateHu();
+      break;
+    }
   }
-}
+})();
+
+

@@ -93,3 +93,60 @@ const getJianName = (number: number) => {
         throw new Error(`invalid jian number: ${number}`);
   }
 }
+
+/**
+ * 牌型：由键值对组成，键是牌的种类，值是牌的张数
+ * 
+ * 牌型 key 是经过特殊设计的数字，保证连续的 key 在实际牌型中可以组成“顺子”，不连续的则不行，方便后续直接以数字判断
+ */
+export interface TilesShape {
+  [tileKey: number]: number,
+}
+
+export const tileToKey = (tile: Tile) => {
+  return `${tile.type}${tile.number}`;
+}
+
+export const keyToTile = (tileKey: string): Tile => {
+  const [typeStr, numberStr] = tileKey.split('');
+
+  const type: TileType = +typeStr;
+  if (!(type in TileType)) throw new Error(`invalid TileType: ${type}`);
+
+  const number: TileNumber = +numberStr;
+  if (!(number in TileNumber)) throw new Error(`invalid TileNumber: ${type}`);
+
+  return {
+    type,
+    number,
+  } as Tile;
+}
+
+export const tilesToShape = (tiles: Tile[]): TilesShape => {
+  const shape: TilesShape = Object.create(null);
+
+  tiles.forEach(t => {
+    const tileKey = tileToKey(t);
+    if (!shape[tileKey]) {
+      shape[tileKey] = 0;
+    }
+
+    shape[tileKey] += 1;
+  });
+
+  return shape;
+}
+
+export const shapeToTiles = (shape: TilesShape): Tile[] => {
+  const tiles: Tile[] = [];
+
+  for (const [tileKey, count] of Object.entries(shape)) {
+    const tile = keyToTile(tileKey);
+    for (let i = 0; i < count; i += 1) {
+      tiles.push(tile);
+    }
+  }
+
+  return tiles;
+};
+
