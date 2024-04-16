@@ -16,13 +16,27 @@ export class Player {
     this.id = id;
   }
 
+  showTiles () {
+    logger.log(`Hand tiles: ${this.tiles.map(t => getTileName(t)).join(' ')}`);
+
+    if (this.melds.length) {
+      logger.log(`Melds: ${
+        this.melds
+          .map(meld => meld
+            .map(t => getTileName(t)).join(' ')
+          ).join(' | ')
+      }`);
+    }
+  }
+
   // 行动
   async action(drawTile?: Tile): Promise<PlayerAction> {
     logger.log('Your turn.');
     if (drawTile) {
       logger.log(`Draw tile: ${getTileName(drawTile)}`);
     }
-    logger.log(`Your hand tiles: ${this.tiles.map(t => getTileName(t)).join(' ')}`);
+
+    this.showTiles();
 
     // 可出牌
     const actionTypes = [PlayerActionType.Discard];
@@ -58,7 +72,7 @@ export class Player {
         'Discard tile',
         this.tiles.map((t, i) => ({
           value: tileToKey(t),
-          label: `${i + 1}) ${getTileName(t)}`,
+          label: getTileName(t),
         })),
         drawTile && tileToKey(drawTile),
       );
@@ -116,7 +130,7 @@ export class Player {
 
   // 加入组对明牌区（吃/碰/杠的牌）
   makeMelts(selfTiles: Tile[], addtionTile?: Tile) {
-    const meltTiles = [...selfTiles, addtionTile];
+    const meltTiles = [...selfTiles, addtionTile].filter(Boolean);
     this.melds.push(meltTiles);
 
     const shape = tilesToShape(this.tiles);

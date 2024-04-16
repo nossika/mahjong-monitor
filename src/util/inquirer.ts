@@ -14,6 +14,7 @@ export const select = async (
     type: 'list',
     message: title,
     name: 'value',
+    loop: false,
     choices: options.map(o => ({
       name: o.label,
       value: o.value,

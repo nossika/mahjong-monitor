@@ -48,14 +48,14 @@ const deleteFromShape = (shape: TilesShape, key: string | number, count: number)
 const isTripleShape = (shape: TilesShape): boolean => {
   const loopShape = (shape: TilesShape) => {
 
-    const tileKeys = Object.keys(shape);
+    const tileKeys = Object.keys(shape).sort();
     if (!tileKeys.length) return true;
     const minKey = +tileKeys[0];
 
     /**
-     * 优先尝试组成“刻子”， 然后尝试组成“顺子”
-     * 因为 key 是排序过的，会先遍历到最小的 key
-     * 所以 一种 key “刻子”和“顺子”同时可满足的情况下，必须优先满足“刻子”，否则拿去组“顺子”的话，剩余的两张牌就无法匹配
+     * 优先尝试组成“刻子”，然后尝试组成“顺子”，同张牌 “刻子”和“顺子”同时可满足的情况下，必须优先满足“刻子”
+     * 因为牌的 key 是排序过的，会先遍历到同花色里最小的 key，如果一种 key 可“顺子”可“刻子”（即数量大于等于 3）时
+     * 假设它们都拿去组“顺子”，可胡的要求是至少也有同等数量的 key + 1、key + 2 牌，但此时将它们全当作“刻子”而非“顺子”也不影响最终可胡结果，因此优先组”刻子“
      */
     if (shape[minKey] >= 3) {
       deleteFromShape(shape, minKey, 3);
@@ -101,7 +101,9 @@ const is13Yao = (shape: TilesShape) => {
  * 条件：全部由“对子”组成（一种牌有 4 张也成立，称为龙七对）
  */
 const is7Pairs = (shape: TilesShape) => {
-  return Object.values(shape).every(number => number === 2 || number === 4);
+  const nums = Object.values(shape);
+  const total = nums.reduce((sum, num) => sum + num, 0);
+  return total === 14 && nums.every(number => number === 2 || number === 4);
 }
 
 /**

@@ -69,4 +69,9 @@ test('hu with 7 pairs', () => {
     '23': 2,
     '47': 4,
   })).toBe(true);
+  expect(canHuShape({
+    '12': 2,
+    '14': 2,
+    '47': 4,
+  })).toBe(false);
 });

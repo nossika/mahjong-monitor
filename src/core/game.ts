@@ -1,7 +1,10 @@
 import { Deck } from '@/core/deck';
 import { Player } from '@/core/player';
 import { Tile } from '@/core/tile';
+import { canHu } from '@/util/judge';
+import logger from '@/util/logger';
 import { wait } from '@/util/time';
+
 
 export enum PlayerActionType {
   KongSelf = 'Kong(Self)', // 自杠
@@ -115,7 +118,8 @@ export class Game {
     // 如果有玩家行动，则下一位行动玩家改为该玩家
     if (action) {
       await this.execPlayerReaction(action);
-      nextPlayerIndex = this.findPlayerIndex(action.playerID);
+      const player = this.getPlayer(action.playerID);
+      nextPlayerIndex = this.players.indexOf(player);
       // 玩家选择吃/碰的话，不需要再摸牌
       needDraw = ![
         PlayerReactionType.Chow,
@@ -130,29 +134,31 @@ export class Game {
   async play(player: Player, needDraw = true) {
     this.status = GameStatus.Playing;
     const action = await this.playerTurn(player, needDraw)
+    if (!action) return;
+
     const discardTile = await this.execPlayerAction(action);
 
     return discardTile;
   }
 
   async execPlayerReaction(action: PlayerReaction) {
-    const player = this.players[this.findPlayerIndex(action.playerID)];
+    const player = this.getPlayer(action.playerID);
 
     switch (action.type) {
       // todo
       case PlayerReactionType.Hu: {
-        this.end(player);
+        this.end();
         break;
       }
     }
   }
 
   async execPlayerAction(action: PlayerAction): Promise<Tile | null> {
-    const player = this.players[this.findPlayerIndex(action.playerID)];
+    const player = this.getPlayer(action.playerID);
 
     switch (action.type) {
       case PlayerActionType.HuSelf: {
-        this.end(player);
+        this.end();
         return null;
       }
 
@@ -178,8 +184,7 @@ export class Game {
     if (needDraw) {
       [tile] = this.deck.draw();
       if (!tile) {
-        this.end(player);
-        return Promise.reject();
+        return Promise.resolve();
       }
 
       player.draw(tile);
@@ -188,15 +193,22 @@ export class Game {
     return player.action(tile);
   }
 
-  private findPlayerIndex(playerID: number) {
-    return this.players.findIndex(player => player.id === playerID);
+  private getPlayer(playerID: number) {
+    return this.players.find(player => player.id === playerID);
   }
 
   // 结算阶段，判断胜利者
-  end(player?: Player) {
+  end() {
+    if (this.status === GameStatus.End) return;
     this.status = GameStatus.End;
 
-    // todo
-    console.log(player);
+    const winner = this.players.find(player => canHu(player.tiles));
+
+    if (winner) {
+      logger.log(`player ${winner.id} is winner!`);
+      winner.showTiles();
+    } else {
+      logger.log('no winner.');
+    }
   }
 }
